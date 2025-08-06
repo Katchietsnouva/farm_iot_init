@@ -63,6 +63,7 @@ class _ChatScreenState extends State<ChatScreen> {
         "Content-Type": "application/json",
         // "Authorization": "Bearer $apiKey",
         "api-key": apiKey!, // Your real Azure API key here
+        // 2qxvbDyCciyemILatZGdJPgWNCZYE2k HZOMdDkWQAdCyaFPxWtCLJQQJ 99BDACHYHv6XJ3w3AAAAACOG6kfS
       },
       body: jsonEncode({
         "model": "gpt-4o-mini",
