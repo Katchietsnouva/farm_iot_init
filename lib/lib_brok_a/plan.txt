@@ -1,0 +1,56 @@
+lib/
+├── main.dart
+├── screens/
+│   ├── home_screen.dart
+│   ├── stats_screen.dart
+│   ├── settings_screen.dart
+│   ├── farm_management_screen.dart
+│   ├── ai_chat_screen.dart
+│   ├── devices_screen.dart
+│   ├── camera_drone_screen.dart
+├── components/
+│   ├── navigation_bar.dart
+│   ├── app_bar.dart
+│   ├── floating_action_button.dart
+├── models/
+│   ├── device_model.dart
+│   ├── farm_data_model.dart
+├── services/
+│   ├── ai_chat_service.dart
+│   ├── embedded_system_service.dart
+│   ├── camera_drone_service.dart
+│   ├── farm_management_service.dart
+├── utils/
+│   ├── constants.dart
+│   ├── helpers.dart
+
+
+
+
+lib/
+├── main.dart
+├── screens/
+│   ├── home_screen.dart
+│   ├── farm_management_screen.dart
+│   ├── device_monitoring_screen.dart
+│   ├── camera_drone_control_screen.dart
+│   ├── ai_assistant_screen.dart
+│   ├── real_time_charts_screen.dart
+├── components/
+│   ├── navigation_bar.dart
+│   ├── app_bar.dart
+│   ├── device_control_card.dart
+│   ├── live_sensor_card.dart
+│   ├── drone_control_panel.dart
+├── services/
+│   ├── mqtt_service.dart
+│   ├── sensor_data_service.dart
+│   ├── drone_service.dart
+│   ├── ai_service.dart
+├── models/
+│   ├── device_model.dart
+│   ├── sensor_data_model.dart
+│   ├── drone_model.dart
+├── utils/
+│   ├── constants.dart
+│   ├── helpers.dart
