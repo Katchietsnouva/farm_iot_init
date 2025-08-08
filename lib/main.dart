@@ -271,47 +271,48 @@
 
 // #######################################################
 
-import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-// import 'package:food/lib_brok_a/screens/ai_chat_screen.dart';
-import 'lib_brok_a/main.dart' as brok_a;
-import 'package:flutter/foundation.dart'; // Add this for kIsWeb
+// import 'package:flutter/material.dart';
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
+// // import 'package:food/lib_brok_a/screens/ai_chat_screen.dart';
+// import 'lib_brok_a/main.dart' as brok_a;
+// import 'package:flutter/foundation.dart'; // Add this for kIsWeb
 
-// void main() {
-//   brok_a.main();
-// }
+// // void main() {
+// //   brok_a.main();
+// // }
+
+// // void main() async {
+// //   await dotenv.load(fileName: ".env");
+// //   runApp(AIChatScreen());
+// //   // AIChatScreen();
+// // }
 
 // void main() async {
-//   await dotenv.load(fileName: ".env");
-//   runApp(AIChatScreen());
-//   // AIChatScreen();
+//   WidgetsFlutterBinding.ensureInitialized();
+//   // try {
+//   //   await dotenv.load(fileName: ".env");
+//   //   print("API Key: ${dotenv.env['OPENAI_API_KEY']}"); // ✅ Test output
+//   //   print("API Key: ${dotenv.env['OPENAI_API_KEY']}"); // ✅ Test output
+//   // } catch (e) {
+//   //   print("Could not load .env file: $e");
+//   // }
+//   brok_a.main();
+//   // runApp(AIChatScreen());
 // }
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // try {
-  //   await dotenv.load(fileName: ".env");
-  //   print("API Key: ${dotenv.env['OPENAI_API_KEY']}"); // ✅ Test output
-  //   print("API Key: ${dotenv.env['OPENAI_API_KEY']}"); // ✅ Test output
-  // } catch (e) {
-  //   print("Could not load .env file: $e");
-  // }
-  brok_a.main();
-  // runApp(AIChatScreen());
+import 'dart:html';
+
+void main() {
+  // Creating a simple HTML page dynamically using Dart
+  final header = HeadingElement.h1()..text = 'Hello from Dart Web!';
+  final button =
+      ButtonElement()
+        ..text = 'Click me!'
+        ..onClick.listen((e) {
+          window.alert('You clicked the button!');
+        });
+
+  // Append elements to the document body
+  document.body!.append(header);
+  document.body!.append(button);
 }
-
-// import 'dart:html';
-
-// void main() {
-//   // Creating a simple HTML page dynamically using Dart
-//   final header = HeadingElement.h1()..text = 'Hello from Dart Web!';
-//   final button = ButtonElement()
-//     ..text = 'Click me!'
-//     ..onClick.listen((e) {
-//       window.alert('You clicked the button!');
-//     });
-
-//   // Append elements to the document body
-//   document.body!.append(header);
-//   document.body!.append(button);
-// }

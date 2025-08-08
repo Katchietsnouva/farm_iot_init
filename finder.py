@@ -101,7 +101,7 @@ if __name__ == '__main__':
     # old_string_ = 'android_intent_plus'
     old_string_ = 'webview_flutter_android'
     old_string_ = 'getApplicationDocumentsDirectory'
-    old_string_ = 'Hive initialized successfully'
+    old_string_ = 'assets/.env '
     
     # old_string = old_string_
     # new_string = 'broka'
