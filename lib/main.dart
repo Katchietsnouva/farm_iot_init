@@ -300,19 +300,138 @@
 //   // runApp(AIChatScreen());
 // }
 
+// import 'dart:html';
+
+// void main() {
+//   // Creating a simple HTML page dynamically using Dart
+//   final header = HeadingElement.h1()..text = 'Hello from Dart Web!';
+//   final button =
+//       ButtonElement()
+//         ..text = 'Click me!'
+//         ..onClick.listen((e) {
+//           window.alert('You clicked the button!');
+//         });
+
+//   // Append elements to the document body
+//   document.body!.append(header);
+//   document.body!.append(button);
+// }
+
 import 'dart:html';
+import 'dart:convert';
+import 'dart:async';
 
 void main() {
-  // Creating a simple HTML page dynamically using Dart
-  final header = HeadingElement.h1()..text = 'Hello from Dart Web!';
-  final button =
+  // Define the HTML elements
+  final header = HeadingElement.h1()..text = 'Farm Assistant Chat';
+  final inputField =
+      InputElement()
+        ..placeholder = 'Enter your message'
+        ..style.width = '80%';
+  final sendButton =
       ButtonElement()
-        ..text = 'Click me!'
-        ..onClick.listen((e) {
-          window.alert('You clicked the button!');
-        });
+        ..text = 'Send'
+        ..style.marginTop = '10px';
+  final messageContainer =
+      DivElement()
+        ..style.border = '1px solid #ccc'
+        ..style.padding = '10px'
+        ..style.height = '400px'
+        ..style.overflowY = 'scroll';
 
-  // Append elements to the document body
+  final userProfileUrl = 'assets/user.jpg'; // Placeholder image path
+  final aiProfileUrl = 'assets/ai_profile.jpg'; // Placeholder image path
+
+  // Add elements to the document
   document.body!.append(header);
-  document.body!.append(button);
+  document.body!.append(messageContainer);
+  document.body!.append(inputField);
+  document.body!.append(sendButton);
+
+  // When the user clicks the button, send the message
+  sendButton.onClick.listen((e) {
+    final userMessage = inputField.value;
+    if (userMessage != null && userMessage.isNotEmpty) {
+      sendMessage(
+        userMessage,
+        messageContainer,
+        inputField,
+      ); // Pass message container and input field
+      inputField.value = ''; // Clear input after sending
+    }
+  });
+}
+
+// Function to send the message to the API
+Future<void> sendMessage(
+  String messageText,
+  DivElement messageContainer,
+  InputElement inputField,
+) async {
+  final aiMessage = await fetchAIResponse(messageText);
+
+  // Create message elements and display them in the message container
+  final userMessageElement =
+      DivElement()
+        ..text = 'You: $messageText'
+        ..style.marginBottom = '10px';
+  final aiMessageElement =
+      DivElement()
+        ..text = 'AI: $aiMessage'
+        ..style.marginBottom = '10px'
+        ..style.fontWeight = 'bold';
+
+  messageContainer.append(userMessageElement);
+  messageContainer.append(aiMessageElement);
+  scrollToBottom(messageContainer); // Pass message container to scroll function
+}
+
+// Function to fetch the AI response
+Future<String> fetchAIResponse(String prompt) async {
+  final apiKey = 'YOUR_API_KEY'; // Replace with your API key
+  final endpointUrl = 'https://22071-ma0ywu5s-eastus2.openai.azure.com';
+  final deploymentName = 'gpt-4o-mini';
+  final apiVersion = '2024-02-15-preview';
+
+  final url = Uri.parse(
+    "$endpointUrl/openai/deployments/$deploymentName/chat/completions?api-version=$apiVersion",
+  );
+
+  List<Map<String, dynamic>> messagesPayload = [
+    {
+      "role": "system",
+      "content":
+          "You are an intelligent farm assistant capable of analyzing text and images related to farming.",
+    },
+    {"role": "user", "content": prompt},
+  ];
+
+  // API request
+  final response = await HttpRequest.request(
+    url.toString(),
+    method: 'POST',
+    requestHeaders: {"Content-Type": "application/json", "api-key": apiKey},
+    sendData: jsonEncode({
+      "messages": messagesPayload,
+      "temperature": 0.7,
+      "max_tokens": 1000,
+      "top_p": 0.95,
+    }),
+  );
+
+  final responseBody = jsonDecode(response.responseText!);
+  if (responseBody['choices'] != null &&
+      responseBody['choices'].isNotEmpty &&
+      responseBody['choices'][0]['message']?['content'] != null) {
+    return responseBody['choices'][0]['message']['content'];
+  } else {
+    throw Exception("Failed to get a valid response from AI.");
+  }
+}
+
+// Helper function to scroll to the bottom of the message container
+void scrollToBottom(DivElement messageContainer) {
+  window.requestAnimationFrame((_) {
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+  });
 }
