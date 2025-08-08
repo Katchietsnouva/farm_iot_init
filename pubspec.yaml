@@ -78,6 +78,7 @@ dependencies:
   image_picker: ^1.1.2
   connectivity_plus: ^6.1.4
   smooth_page_indicator: ^1.2.1
+  envied: ^1.2.0
   
 dev_dependencies:
   flutter_test:
@@ -97,6 +98,7 @@ dev_dependencies:
   package_info_plus: ^8.0.0  # To get app package name for export path
   
 
+  envied_generator: ^1.1.1
 
 flutter:
   uses-material-design: true

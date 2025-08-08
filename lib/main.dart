@@ -594,6 +594,7 @@
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:food/env.dart';
 import 'package:http/http.dart' as http;
 import 'package:connectivity_plus/connectivity_plus.dart';
 
@@ -656,7 +657,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<String> _fetchAIResponse(String prompt) async {
-    final apiKey = String.fromEnvironment('AZURE_DEPLOYMENT_TOKEN');
+    // final apiKey = String.fromEnvironment('AZURE_DEPLOYMENT_TOKEN');
+    final apiKey = Env.apiKey; // Use Env.apiKey from env.dart
     const apiVersion = "2024-02-15-preview";
     final deploymentName = "gpt-4o-mini";
     final endpointUrl = "https://22071-ma0ywu5s-eastus2.openai.azure.com";
