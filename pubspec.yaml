@@ -102,7 +102,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    # - .env
+    - .env
     - assets/user.jpg
     - assets/ai_profile.jpg
     - assets/lib_broka/images/
