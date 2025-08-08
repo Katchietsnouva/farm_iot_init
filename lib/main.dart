@@ -317,286 +317,426 @@
 //   document.body!.append(button);
 // }
 
-// ignore_for_file: unused_import
-
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:html';
-import 'dart:convert';
-import 'dart:async';
 
 void main() {
-  // --- CSS Styles for a Modern Chat UI ---
-  final styles = '''
-    :root {
-      --body-bg: #f0f2f5;
-      --chat-bg: #ffffff;
-      --user-bubble-bg: #0084ff;
-      --ai-bubble-bg: #e4e6eb;
-      --text-color-light: #ffffff;
-      --text-color-dark: #050505;
-      --border-color: #ced0d4;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      margin: 0;
-      background-color: var(--body-bg);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .chat-window {
-      width: 100%;
-      max-width: 800px;
-      height: 95vh;
-      display: flex;
-      flex-direction: column;
-      background-color: var(--chat-bg);
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-    }
-    h1 {
-      text-align: center;
-      color: var(--text-color-dark);
-      padding: 15px;
-      margin: 0;
-      border-bottom: 1px solid var(--border-color);
-      font-size: 1.2rem;
-    }
-    .message-container {
-      flex-grow: 1;
-      padding: 20px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-    .input-container {
-      display: flex;
-      padding: 10px;
-      border-top: 1px solid var(--border-color);
-      gap: 10px;
-    }
-    .chat-input {
-      flex-grow: 1;
-      padding: 12px;
-      border: 1px solid var(--border-color);
-      border-radius: 18px;
-      font-size: 1rem;
-      outline: none;
-    }
-    .chat-input:focus {
-      border-color: var(--user-bubble-bg);
-    }
-    .send-button {
-      padding: 10px 20px;
-      background-color: var(--user-bubble-bg);
-      color: var(--text-color-light);
-      border: none;
-      border-radius: 18px;
-      font-size: 1rem;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background-color 0.2s;
-    }
-    .send-button:hover {
-      background-color: #0073e0;
-    }
-    .message-wrapper {
-      display: flex;
-      align-items: flex-end;
-      gap: 10px;
-      max-width: 75%;
-    }
-    .avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-    .message-bubble {
-      padding: 10px 15px;
-      border-radius: 18px;
-      color: var(--text-color-dark);
-      background-color: var(--ai-bubble-bg);
-    }
-    /* Styles for the user's messages */
-    .user-message {
-      align-self: flex-end;
-      flex-direction: row-reverse; /* Puts avatar on the right */
-    }
-    .user-message .message-bubble {
-      background-color: var(--user-bubble-bg);
-      color: var(--text-color-light);
-    }
-  ''';
+  runApp(ChatApp());
+}
 
-  // Inject CSS into the document's head
-  document.head!.append(StyleElement()..text = styles);
+class ChatApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(debugShowCheckedModeBanner: false, home: ChatScreen());
+  }
+}
 
-  // --- HTML Element Creation ---
-  final header = HeadingElement.h1()..text = 'Farm Assistant Chat 🧑‍🌾';
+class ChatScreen extends StatefulWidget {
+  @override
+  _ChatScreenState createState() => _ChatScreenState();
+}
 
-  final messageContainer = DivElement()..classes.add('message-container');
+class _ChatScreenState extends State<ChatScreen> {
+  final List<String> _messages = [];
+  final TextEditingController _controller = TextEditingController();
 
-  final inputField =
-      InputElement()
-        ..classes.add('chat-input')
-        ..placeholder = 'Ask about your farm...';
-
-  final sendButton =
-      ButtonElement()
-        ..classes.add('send-button')
-        ..text = 'Send';
-
-  final inputContainer =
-      DivElement()
-        ..classes.add('input-container')
-        ..append(inputField)
-        ..append(sendButton);
-
-  final chatWindow =
-      DivElement()
-        ..classes.add('chat-window')
-        ..append(header)
-        ..append(messageContainer)
-        ..append(inputContainer);
-
-  // Add the main chat window to the document body
-  document.body!.append(chatWindow);
-
-  // --- Event Handling ---
-  void submitMessage() {
-    final userMessage = inputField.value?.trim() ?? '';
-    if (userMessage.isNotEmpty) {
-      displayMessage(
-        userMessage,
-        isUser: true,
-        messageContainer: messageContainer,
-      );
-      fetchAndDisplayAIResponse(userMessage, messageContainer);
-      inputField.value = ''; // Clear input after sending
-      inputField.focus(); // Keep focus on the input field
+  void _sendMessage() {
+    if (_controller.text.isNotEmpty) {
+      setState(() {
+        _messages.add(_controller.text);
+        _controller.clear();
+      });
     }
   }
 
-  // Send on button click
-  sendButton.onClick.listen((_) => submitMessage());
-
-  // Send on 'Enter' key press
-  inputField.onKeyDown.listen((event) {
-    if (event.key == 'Enter') {
-      submitMessage();
-    }
-  });
-}
-
-// Function to display a message (from user or AI)
-void displayMessage(
-  String text, {
-  required bool isUser,
-  required DivElement messageContainer,
-}) {
-  final userProfileUrl = 'assets/user.jpg'; // Placeholder path
-  final aiProfileUrl = 'assets/ai_profile.jpg'; // Placeholder path
-
-  final avatar = ImageElement(src: isUser ? userProfileUrl : aiProfileUrl)
-    ..classes.add('avatar');
-
-  final bubble =
-      DivElement()
-        ..classes.add('message-bubble')
-        ..text = text;
-
-  final wrapper =
-      DivElement()
-        ..classes.add('message-wrapper')
-        ..append(avatar)
-        ..append(bubble);
-
-  if (isUser) {
-    wrapper.classes.add('user-message');
-  }
-
-  messageContainer.append(wrapper);
-  scrollToBottom(messageContainer);
-}
-
-// Function to get and display the AI response
-Future<void> fetchAndDisplayAIResponse(
-  String prompt,
-  DivElement messageContainer,
-) async {
-  try {
-    final aiMessage = await fetchAIResponse(prompt);
-    displayMessage(
-      aiMessage,
-      isUser: false,
-      messageContainer: messageContainer,
-    );
-  } catch (e) {
-    displayMessage(
-      "Sorry, I couldn't get a response. Error: $e",
-      isUser: false,
-      messageContainer: messageContainer,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Chat Screen'), backgroundColor: Colors.blue),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: _messages.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Container(
+                    margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[100],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(_messages[index]),
+                  ),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: InputDecoration(
+                      hintText: 'Type a message...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    onSubmitted: (_) => _sendMessage(),
+                  ),
+                ),
+                SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(Icons.send, color: Colors.blue),
+                  onPressed: _sendMessage,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-// Function to fetch the AI response (API call logic is unchanged)
-Future<String> fetchAIResponse(String prompt) async {
-  // IMPORTANT: Replace with your actual API key
-  final apiKey = dotenv.env['AZURE_DEPLOYMENT_TOKEN'];
+// import 'package:flutter/material.dart';
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
+// // import 'screens/quiz_screen.dart'; // We will create this file next
 
-  // if (apiKey == 'YOUR_API_KEY') {
-  //   return "Please replace 'YOUR_API_KEY' in the code with your actual Azure OpenAI API key.";
-  // }
+// import 'dart:convert';
+// import 'package:http/http.dart' as http;
 
-  final endpointUrl = 'https://22071-ma0ywu5s-eastus2.openai.azure.com';
-  final deploymentName = 'gpt-4o-mini';
-  final apiVersion = '2024-02-15-preview';
+// Future<void> main() async {
+//   // Load the environment variables from the .env file
+//   await dotenv.load(fileName: ".env");
+//   runApp(const MyApp());
+// }
 
-  final url = Uri.parse(
-    "$endpointUrl/openai/deployments/$deploymentName/chat/completions?api-version=$apiVersion",
-  );
-  if (apiKey == null) {
-    debugPrint('Error: AZURE_DEPLOYMENT_TOKEN not found.');
-    throw Exception("API key not configured.");
-  }
+// class MyApp extends StatelessWidget {
+//   const MyApp({super.key});
 
-  final messagesPayload = [
-    {"role": "system", "content": "You are an intelligent farm assistant."},
-    {"role": "user", "content": prompt},
-  ];
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       title: 'Farm Quiz Assistant',
+//       theme: ThemeData(
+//         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+//         useMaterial3: true,
+//       ),
+//       darkTheme: ThemeData.dark(useMaterial3: true),
+//       themeMode: ThemeMode.system,
+//       home: const QuizScreen(),
+//     );
+//   }
+// }
 
-  final response = await HttpRequest.request(
-    url.toString(),
-    method: 'POST',
-    requestHeaders: {"Content-Type": "application/json", "api-key": apiKey},
-    sendData: jsonEncode({
-      "messages": messagesPayload,
-      "temperature": 0.7,
-      "max_tokens": 1000,
-      "top_p": 0.95,
-    }),
-  );
+// // --- Data Model for a Message ---
+// class ChatMessage {
+//   final String text;
+//   final bool isUser;
 
-  final responseBody = jsonDecode(response.responseText!);
-  if (responseBody['choices'] != null &&
-      responseBody['choices'].isNotEmpty &&
-      responseBody['choices'][0]['message']?['content'] != null) {
-    return responseBody['choices'][0]['message']['content'];
-  } else {
-    throw Exception("Invalid response format from AI.");
-  }
-}
+//   ChatMessage({required this.text, required this.isUser});
+// }
 
-// Helper function to scroll to the bottom of the message container
-void scrollToBottom(DivElement messageContainer) {
-  // A short delay ensures the element is rendered before scrolling
-  Timer(Duration(milliseconds: 50), () {
-    messageContainer.scrollTop = messageContainer.scrollHeight;
-  });
-}
+// // --- The Main Screen Widget ---
+// class QuizScreen extends StatefulWidget {
+//   const QuizScreen({super.key});
+
+//   @override
+//   State<QuizScreen> createState() => _QuizScreenState();
+// }
+
+// class _QuizScreenState extends State<QuizScreen> {
+//   final TextEditingController _textController = TextEditingController();
+//   final ScrollController _scrollController = ScrollController();
+//   final List<ChatMessage> _messages = [];
+//   bool _isAiTyping = false;
+//   bool _isQuizActive = false;
+
+//   // --- Quiz Content ---
+//   final List<String> _quizQuestions = [
+//     "What type of crop are you primarily growing?",
+//     "What is the approximate size of your farm in acres?",
+//     "What is the biggest challenge you're facing? (e.g., pests, irrigation, soil quality)",
+//     "Are you using any technology (like drones or sensors) on your farm right now?",
+//   ];
+//   final List<String> _userAnswers = [];
+//   int _currentQuestionIndex = 0;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     // Start with a welcome message
+//     _addMessage(
+//       "Hello! I'm your farm assistant. Tap 'Start Quiz' to begin.",
+//       isUser: false,
+//     );
+//   }
+
+//   void _addMessage(String text, {required bool isUser}) {
+//     setState(() {
+//       _messages.insert(0, ChatMessage(text: text, isUser: isUser));
+//     });
+//     // Scroll to the latest message
+//     _scrollController.animateTo(
+//       0,
+//       duration: const Duration(milliseconds: 300),
+//       curve: Curves.easeOut,
+//     );
+//   }
+
+//   void _startQuiz() {
+//     setState(() {
+//       _isQuizActive = true;
+//       _userAnswers.clear();
+//       _currentQuestionIndex = 0;
+//     });
+//     // Ask the first question
+//     _addMessage(_quizQuestions[_currentQuestionIndex], isUser: false);
+//   }
+
+//   void _handleSubmittedAnswer(String text) {
+//     if (text.trim().isEmpty) return;
+
+//     // Add user's answer to the chat and data list
+//     _addMessage(text, isUser: true);
+//     _userAnswers.add(text);
+//     _textController.clear();
+
+//     // Move to the next question or end the quiz
+//     _currentQuestionIndex++;
+//     if (_currentQuestionIndex < _quizQuestions.length) {
+//       // Ask the next question after a short delay
+//       Future.delayed(const Duration(milliseconds: 500), () {
+//         _addMessage(_quizQuestions[_currentQuestionIndex], isUser: false);
+//       });
+//     } else {
+//       // Quiz finished, send to AI
+//       setState(() {
+//         _isQuizActive = false;
+//       });
+//       _submitQuizToAI();
+//     }
+//   }
+
+//   Future<void> _submitQuizToAI() async {
+//     _addMessage("Thanks! Analyzing your answers...", isUser: false);
+//     setState(() {
+//       _isAiTyping = true;
+//     });
+
+//     // Format the prompt for the AI
+//     final promptBuffer = StringBuffer();
+//     promptBuffer.writeln(
+//       "Analyze the following farm quiz results and provide personalized advice and insights:\n",
+//     );
+//     for (int i = 0; i < _quizQuestions.length; i++) {
+//       promptBuffer.writeln("Question: ${_quizQuestions[i]}");
+//       promptBuffer.writeln("Answer: ${_userAnswers[i]}\n");
+//     }
+
+//     try {
+//       final aiResponse = await _fetchAIResponse(promptBuffer.toString());
+//       _addMessage(aiResponse, isUser: false);
+//     } catch (e) {
+//       _addMessage("Sorry, an error occurred: $e", isUser: false);
+//     } finally {
+//       setState(() {
+//         _isAiTyping = false;
+//       });
+//     }
+//   }
+
+//   Future<String> _fetchAIResponse(String prompt) async {
+//     final apiKey = dotenv.env['AZURE_DEPLOYMENT_TOKEN'];
+//     if (apiKey == null) {
+//       throw Exception("API Key not found in .env file.");
+//     }
+
+//     const endpointUrl = "https://22071-ma0ywu5s-eastus2.openai.azure.com";
+//     const deploymentName = "gpt-4o-mini";
+//     const apiVersion = "2024-02-15-preview";
+//     final url = Uri.parse(
+//       "$endpointUrl/openai/deployments/$deploymentName/chat/completions?api-version=$apiVersion",
+//     );
+
+//     final messagesPayload = [
+//       {
+//         "role": "system",
+//         "content":
+//             "You are an intelligent farm assistant who analyzes quiz results.",
+//       },
+//       {"role": "user", "content": prompt},
+//     ];
+
+//     final response = await http.post(
+//       url,
+//       headers: {"Content-Type": "application/json", "api-key": apiKey},
+//       body: jsonEncode({
+//         "messages": messagesPayload,
+//         "temperature": 0.7,
+//         "max_tokens": 1000,
+//       }),
+//     );
+
+//     if (response.statusCode == 200) {
+//       final data = jsonDecode(response.body);
+//       return data['choices'][0]['message']['content'];
+//     } else {
+//       throw Exception("API Error: ${response.statusCode}\n${response.body}");
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: const Text("Farm Quiz Assistant 🧑‍🌾"),
+//         backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+//       ),
+//       body: Column(
+//         children: [
+//           // Chat Messages
+//           Expanded(
+//             child: ListView.builder(
+//               controller: _scrollController,
+//               reverse: true, // To show new messages at the bottom
+//               itemCount: _messages.length,
+//               itemBuilder: (context, index) {
+//                 final message = _messages[index];
+//                 return _ChatMessageBubble(message: message);
+//               },
+//             ),
+//           ),
+//           if (_isAiTyping)
+//             const Padding(
+//               padding: EdgeInsets.all(8.0),
+//               child: _TypingIndicator(),
+//             ),
+//           // Input Area
+//           const Divider(height: 1.0),
+//           Container(
+//             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+//             child: _buildInputArea(),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _buildInputArea() {
+//     if (_isQuizActive) {
+//       // Show text field for answering questions
+//       return Row(
+//         children: [
+//           Expanded(
+//             child: TextField(
+//               controller: _textController,
+//               decoration: InputDecoration(
+//                 hintText: "Type your answer here...",
+//                 border: OutlineInputBorder(
+//                   borderRadius: BorderRadius.circular(20),
+//                 ),
+//                 contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+//               ),
+//               onSubmitted: _handleSubmittedAnswer,
+//             ),
+//           ),
+//           const SizedBox(width: 8.0),
+//           IconButton.filled(
+//             icon: const Icon(Icons.send),
+//             onPressed: () => _handleSubmittedAnswer(_textController.text),
+//           ),
+//         ],
+//       );
+//     } else {
+//       // Show "Start Quiz" button
+//       return Center(
+//         child: ElevatedButton.icon(
+//           icon: const Icon(Icons.quiz_outlined),
+//           label: Text(_userAnswers.isEmpty ? "Start Quiz" : "Start a New Quiz"),
+//           style: ElevatedButton.styleFrom(
+//             padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+//             textStyle: const TextStyle(fontSize: 16),
+//           ),
+//           onPressed: _isAiTyping ? null : _startQuiz,
+//         ),
+//       );
+//     }
+//   }
+// }
+
+// // --- Reusable Chat Bubble Widget ---
+// class _ChatMessageBubble extends StatelessWidget {
+//   const _ChatMessageBubble({required this.message});
+//   final ChatMessage message;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final theme = Theme.of(context);
+//     final isUser = message.isUser;
+//     return Container(
+//       margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 10.0),
+//       child: Row(
+//         mainAxisAlignment:
+//             isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+//         children: [
+//           Flexible(
+//             child: Container(
+//               padding: const EdgeInsets.symmetric(
+//                 vertical: 10.0,
+//                 horizontal: 16.0,
+//               ),
+//               decoration: BoxDecoration(
+//                 color:
+//                     isUser
+//                         ? theme.colorScheme.primary
+//                         : theme.colorScheme.secondaryContainer,
+//                 borderRadius: BorderRadius.circular(18.0),
+//               ),
+//               child: Text(
+//                 message.text,
+//                 style: TextStyle(
+//                   color:
+//                       isUser
+//                           ? theme.colorScheme.onPrimary
+//                           : theme.colorScheme.onSecondaryContainer,
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+
+// // --- Simple Typing Indicator ---
+// class _TypingIndicator extends StatelessWidget {
+//   const _TypingIndicator();
+//   @override
+//   Widget build(BuildContext context) {
+//     return Row(
+//       mainAxisAlignment: MainAxisAlignment.start,
+//       children: [
+//         Padding(
+//           padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 10.0),
+//           child: Container(
+//             padding: const EdgeInsets.symmetric(
+//               vertical: 14.0,
+//               horizontal: 16.0,
+//             ),
+//             decoration: BoxDecoration(
+//               color: Theme.of(context).colorScheme.secondaryContainer,
+//               borderRadius: BorderRadius.circular(18.0),
+//             ),
+//             child: const SizedBox(width: 40, child: LinearProgressIndicator()),
+//           ),
+//         ),
+//       ],
+//     );
+//   }
+// }
