@@ -317,78 +317,243 @@
 //   document.body!.append(button);
 // }
 
+// ignore_for_file: unused_import
+
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:html';
 import 'dart:convert';
 import 'dart:async';
 
 void main() {
-  // Define the HTML elements
-  final header = HeadingElement.h1()..text = 'Farm Assistant Chat';
+  // --- CSS Styles for a Modern Chat UI ---
+  final styles = '''
+    :root {
+      --body-bg: #f0f2f5;
+      --chat-bg: #ffffff;
+      --user-bubble-bg: #0084ff;
+      --ai-bubble-bg: #e4e6eb;
+      --text-color-light: #ffffff;
+      --text-color-dark: #050505;
+      --border-color: #ced0d4;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      background-color: var(--body-bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .chat-window {
+      width: 100%;
+      max-width: 800px;
+      height: 95vh;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--chat-bg);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    h1 {
+      text-align: center;
+      color: var(--text-color-dark);
+      padding: 15px;
+      margin: 0;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 1.2rem;
+    }
+    .message-container {
+      flex-grow: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .input-container {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid var(--border-color);
+      gap: 10px;
+    }
+    .chat-input {
+      flex-grow: 1;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      font-size: 1rem;
+      outline: none;
+    }
+    .chat-input:focus {
+      border-color: var(--user-bubble-bg);
+    }
+    .send-button {
+      padding: 10px 20px;
+      background-color: var(--user-bubble-bg);
+      color: var(--text-color-light);
+      border: none;
+      border-radius: 18px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+    .send-button:hover {
+      background-color: #0073e0;
+    }
+    .message-wrapper {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      max-width: 75%;
+    }
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .message-bubble {
+      padding: 10px 15px;
+      border-radius: 18px;
+      color: var(--text-color-dark);
+      background-color: var(--ai-bubble-bg);
+    }
+    /* Styles for the user's messages */
+    .user-message {
+      align-self: flex-end;
+      flex-direction: row-reverse; /* Puts avatar on the right */
+    }
+    .user-message .message-bubble {
+      background-color: var(--user-bubble-bg);
+      color: var(--text-color-light);
+    }
+  ''';
+
+  // Inject CSS into the document's head
+  document.head!.append(StyleElement()..text = styles);
+
+  // --- HTML Element Creation ---
+  final header = HeadingElement.h1()..text = 'Farm Assistant Chat 🧑‍🌾';
+
+  final messageContainer = DivElement()..classes.add('message-container');
+
   final inputField =
       InputElement()
-        ..placeholder = 'Enter your message'
-        ..style.width = '80%';
+        ..classes.add('chat-input')
+        ..placeholder = 'Ask about your farm...';
+
   final sendButton =
       ButtonElement()
-        ..text = 'Send'
-        ..style.marginTop = '10px';
-  final messageContainer =
+        ..classes.add('send-button')
+        ..text = 'Send';
+
+  final inputContainer =
       DivElement()
-        ..style.border = '1px solid #ccc'
-        ..style.padding = '10px'
-        ..style.height = '400px'
-        ..style.overflowY = 'scroll';
+        ..classes.add('input-container')
+        ..append(inputField)
+        ..append(sendButton);
 
-  final userProfileUrl = 'assets/user.jpg'; // Placeholder image path
-  final aiProfileUrl = 'assets/ai_profile.jpg'; // Placeholder image path
+  final chatWindow =
+      DivElement()
+        ..classes.add('chat-window')
+        ..append(header)
+        ..append(messageContainer)
+        ..append(inputContainer);
 
-  // Add elements to the document
-  document.body!.append(header);
-  document.body!.append(messageContainer);
-  document.body!.append(inputField);
-  document.body!.append(sendButton);
+  // Add the main chat window to the document body
+  document.body!.append(chatWindow);
 
-  // When the user clicks the button, send the message
-  sendButton.onClick.listen((e) {
-    final userMessage = inputField.value;
-    if (userMessage != null && userMessage.isNotEmpty) {
-      sendMessage(
+  // --- Event Handling ---
+  void submitMessage() {
+    final userMessage = inputField.value?.trim() ?? '';
+    if (userMessage.isNotEmpty) {
+      displayMessage(
         userMessage,
-        messageContainer,
-        inputField,
-      ); // Pass message container and input field
+        isUser: true,
+        messageContainer: messageContainer,
+      );
+      fetchAndDisplayAIResponse(userMessage, messageContainer);
       inputField.value = ''; // Clear input after sending
+      inputField.focus(); // Keep focus on the input field
+    }
+  }
+
+  // Send on button click
+  sendButton.onClick.listen((_) => submitMessage());
+
+  // Send on 'Enter' key press
+  inputField.onKeyDown.listen((event) {
+    if (event.key == 'Enter') {
+      submitMessage();
     }
   });
 }
 
-// Function to send the message to the API
-Future<void> sendMessage(
-  String messageText,
-  DivElement messageContainer,
-  InputElement inputField,
-) async {
-  final aiMessage = await fetchAIResponse(messageText);
+// Function to display a message (from user or AI)
+void displayMessage(
+  String text, {
+  required bool isUser,
+  required DivElement messageContainer,
+}) {
+  final userProfileUrl = 'assets/user.jpg'; // Placeholder path
+  final aiProfileUrl = 'assets/ai_profile.jpg'; // Placeholder path
 
-  // Create message elements and display them in the message container
-  final userMessageElement =
-      DivElement()
-        ..text = 'You: $messageText'
-        ..style.marginBottom = '10px';
-  final aiMessageElement =
-      DivElement()
-        ..text = 'AI: $aiMessage'
-        ..style.marginBottom = '10px'
-        ..style.fontWeight = 'bold';
+  final avatar = ImageElement(src: isUser ? userProfileUrl : aiProfileUrl)
+    ..classes.add('avatar');
 
-  messageContainer.append(userMessageElement);
-  messageContainer.append(aiMessageElement);
-  scrollToBottom(messageContainer); // Pass message container to scroll function
+  final bubble =
+      DivElement()
+        ..classes.add('message-bubble')
+        ..text = text;
+
+  final wrapper =
+      DivElement()
+        ..classes.add('message-wrapper')
+        ..append(avatar)
+        ..append(bubble);
+
+  if (isUser) {
+    wrapper.classes.add('user-message');
+  }
+
+  messageContainer.append(wrapper);
+  scrollToBottom(messageContainer);
 }
 
-// Function to fetch the AI response
+// Function to get and display the AI response
+Future<void> fetchAndDisplayAIResponse(
+  String prompt,
+  DivElement messageContainer,
+) async {
+  try {
+    final aiMessage = await fetchAIResponse(prompt);
+    displayMessage(
+      aiMessage,
+      isUser: false,
+      messageContainer: messageContainer,
+    );
+  } catch (e) {
+    displayMessage(
+      "Sorry, I couldn't get a response. Error: $e",
+      isUser: false,
+      messageContainer: messageContainer,
+    );
+  }
+}
+
+// Function to fetch the AI response (API call logic is unchanged)
 Future<String> fetchAIResponse(String prompt) async {
-  final apiKey = 'YOUR_API_KEY'; // Replace with your API key
+  // IMPORTANT: Replace with your actual API key
+  final apiKey = dotenv.env['AZURE_DEPLOYMENT_TOKEN'];
+
+  // if (apiKey == 'YOUR_API_KEY') {
+  //   return "Please replace 'YOUR_API_KEY' in the code with your actual Azure OpenAI API key.";
+  // }
+
   final endpointUrl = 'https://22071-ma0ywu5s-eastus2.openai.azure.com';
   final deploymentName = 'gpt-4o-mini';
   final apiVersion = '2024-02-15-preview';
@@ -396,17 +561,16 @@ Future<String> fetchAIResponse(String prompt) async {
   final url = Uri.parse(
     "$endpointUrl/openai/deployments/$deploymentName/chat/completions?api-version=$apiVersion",
   );
+  if (apiKey == null) {
+    debugPrint('Error: AZURE_DEPLOYMENT_TOKEN not found.');
+    throw Exception("API key not configured.");
+  }
 
-  List<Map<String, dynamic>> messagesPayload = [
-    {
-      "role": "system",
-      "content":
-          "You are an intelligent farm assistant capable of analyzing text and images related to farming.",
-    },
+  final messagesPayload = [
+    {"role": "system", "content": "You are an intelligent farm assistant."},
     {"role": "user", "content": prompt},
   ];
 
-  // API request
   final response = await HttpRequest.request(
     url.toString(),
     method: 'POST',
@@ -425,13 +589,14 @@ Future<String> fetchAIResponse(String prompt) async {
       responseBody['choices'][0]['message']?['content'] != null) {
     return responseBody['choices'][0]['message']['content'];
   } else {
-    throw Exception("Failed to get a valid response from AI.");
+    throw Exception("Invalid response format from AI.");
   }
 }
 
 // Helper function to scroll to the bottom of the message container
 void scrollToBottom(DivElement messageContainer) {
-  window.requestAnimationFrame((_) {
+  // A short delay ensures the element is rendered before scrolling
+  Timer(Duration(milliseconds: 50), () {
     messageContainer.scrollTop = messageContainer.scrollHeight;
   });
 }
