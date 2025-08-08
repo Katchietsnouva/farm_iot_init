@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:food/lib_brok_a/models/chat_message.dart';
@@ -122,13 +124,19 @@ Future<void> main() async {
   try {
     final prefs = await SharedPreferences.getInstance();
     final String? savedTheme = prefs.getString(themePreferenceKey);
-    if (savedTheme == 'light') {
-      themeNotifier.value = ThemeMode.light;
-    } else if (savedTheme == 'dark') {
-      themeNotifier.value = ThemeMode.dark;
-    } else {
-      themeNotifier.value = ThemeMode.system;
-    }
+    // if (savedTheme == 'light') {
+    //   themeNotifier.value = ThemeMode.light;
+    // } else if (savedTheme == 'dark') {
+    //   themeNotifier.value = ThemeMode.dark;
+    // } else {
+    //   themeNotifier.value = ThemeMode.system;
+    // }
+    themeNotifier.value =
+        savedTheme == 'light'
+            ? ThemeMode.light
+            : savedTheme == 'dark'
+            ? ThemeMode.dark
+            : ThemeMode.system;
   } catch (e) {
     debugPrint("Error loading theme preference: $e");
     themeNotifier.value = ThemeMode.system; // Default on error
@@ -137,17 +145,36 @@ Future<void> main() async {
 
   // Hive Initialization (keep as before)
   try {
-    final appDocumentDir = await getApplicationDocumentsDirectory();
-    await Hive.initFlutter(appDocumentDir.path);
+    // For non-web platforms, get the actual directory
+    if (!kIsWeb) {
+      // appDocumentDir = await getApplicationDocumentsDirectory();
+      final appDocumentDir = await getApplicationDocumentsDirectory();
+      await Hive.initFlutter(appDocumentDir.path); // Mobile platforms
+      debugPrint("Hive initialized successfully at ${appDocumentDir.path}");
+    } else {
+      // For the web, mock a directory or provide a fallback
+      // appDocumentDir = Directory('/'); // Example of a fallback directory
+      await Hive.initFlutter(); // Web uses IndexedDB, no path needed
+      debugPrint("Hive initialized successfully for web (IndexedDB).");
+    }
+    // final appDocumentDir = await getApplicationDocumentsDirectory();
+
+    // await Hive.initFlutter(appDocumentDir.path);
     // Check if adapter is already registered before registering
     if (!Hive.isAdapterRegistered(ChatMessageAdapter().typeId)) {
       Hive.registerAdapter(ChatMessageAdapter());
     }
     // Check if box is already open before opening
+    // Open box if not already open
     if (!Hive.isBoxOpen('chatMessages')) {
       await Hive.openBox<ChatMessage>('chatMessages');
     }
-    debugPrint("Hive initialized successfully at ${appDocumentDir.path}");
+
+    if (Hive.isBoxOpen('chatMessages')) {
+      debugPrint("Hive box 'chatMessages' opened successfully.");
+    } else {
+      debugPrint("Error: Hive box 'chatMessages' could not be opened.");
+    }
   } catch (e) {
     debugPrint("Error initializing Hive: $e");
   }
@@ -197,7 +224,7 @@ Future<void> _requestPermissions() async {
 //     // --- Listen to Theme Notifier ---
 //     return ValueListenableBuilder<ThemeMode>(
 //       valueListenable: themeNotifier,
-//       builder: (_, currentMode, __) {
+//       builder: (_, currentMode, __) {  
 //         // --- Return MaterialApp ---
 //         return MaterialApp(
 //           title: 'Farm Assistant Chat',

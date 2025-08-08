@@ -4,7 +4,7 @@ import 'package:food/lib_brok_a/utils/screen_type.dart' show ScreenTypeDetector;
 import 'farm_management_screen.dart';
 import 'farm_monitoring_screen.dart';
 import '../components/navigation_bar.dart';
-import 'ai_chat_screen.dart';
+// import 'ai_chat_screen.dart';
 import 'devices_screen.dart';
 import 'camera_drone_screen.dart';
 import 'dash_board_screen_2.dart';
@@ -24,9 +24,10 @@ class _HomeScreenState extends State<HomeScreen> {
     FarmMonitoringApp(),
     DashboardScreen_2_screen(),
     // AIChatScreen(),
-    AIChatApp(),
+    // AIChatApp(),
     const DevicesScreen(),
     const CameraDroneScreen(),
+    const FarmManagementScreen(),
     const FarmManagementScreen(),
     // const RealTimeChartsScreen()
   ];

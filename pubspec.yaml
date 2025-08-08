@@ -77,6 +77,7 @@ dependencies:
   hive_flutter: ^1.1.0
   image_picker: ^1.1.2
   connectivity_plus: ^6.1.4
+  smooth_page_indicator: ^1.2.1
   
 dev_dependencies:
   flutter_test:
@@ -108,7 +109,7 @@ flutter:
     - assets/lib_broka/images/category/
     - assets/lib_broka/images/carousel/
     - assets/lib_broka/images/just_for_you/
-
+    - assets/map_placeholder.png
 
 
     # - assets/user.jpg

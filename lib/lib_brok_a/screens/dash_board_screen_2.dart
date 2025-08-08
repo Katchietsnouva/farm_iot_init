@@ -190,7 +190,7 @@ class DashboardScreen_2 extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   image: DecorationImage(
-                    image: AssetImage('assets/map_placeholder.png'),
+                    image: AssetImage('assets/user.jpg'),
                     fit: BoxFit.cover,
                   ),
                 ),
