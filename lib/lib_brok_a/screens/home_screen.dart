@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
     FarmMonitoringApp(),
     DashboardScreen_2_screen(),
     // AIChatScreen(),
-    // AIChatApp(),
+    AIChatApp(),
     const DevicesScreen(),
     const CameraDroneScreen(),
     const FarmManagementScreen(),
