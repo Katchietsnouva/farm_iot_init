@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // For rootBundle (if needed for package name) or SystemChrome
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:food/lib_brok_a/models/env.dart';
 import 'package:food/lib_brok_a/screens/chat_screen_caller.dart';
 import 'package:http/http.dart' as http;
 import 'package:hive_flutter/hive_flutter.dart';
@@ -186,7 +187,9 @@ class _ChatScreenState extends State<ChatScreen> {
   // --- API Call Logic (_fetchAIResponse) ---
   // ... (Keep your existing _fetchAIResponse function here) ...
   Future<String> _fetchAIResponse(String prompt, {File? imageFile}) async {
-    final apiKey = dotenv.env['AZURE_DEPLOYMENT_TOKEN'];
+    // final apiKey = dotenv.env['AZURE_DEPLOYMENT_TOKEN'];
+    final apiKey = Env.apiKey; // Use Env.apiKey from env.dart
+
     const apiVersion =
         "2024-02-15-preview"; // Use a version known for vision support
     final deploymentName = "gpt-4o-mini";
