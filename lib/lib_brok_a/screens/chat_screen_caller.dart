@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:food/lib_brok_a/models/chat_message.dart';
 import 'package:food/lib_brok_a/screens/chat_screen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -20,7 +20,7 @@ const String themePreferenceKey = 'app_theme_mode';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _requestPermissions();
-  await dotenv.load();
+  // await dotenv.load();
 
   // --- Load Theme Preference ---
   try {

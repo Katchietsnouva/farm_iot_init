@@ -272,7 +272,7 @@
 // #######################################################
 
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
 // import 'package:food/lib_brok_a/screens/ai_chat_screen.dart';
 import 'lib_brok_a/main.dart' as brok_a;
 import 'package:flutter/foundation.dart'; // Add this for kIsWeb

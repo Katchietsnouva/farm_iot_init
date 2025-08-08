@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // For rootBundle (if needed for package name) or SystemChrome
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:food/lib_brok_a/models/env.dart';
 import 'package:food/lib_brok_a/screens/chat_screen_caller.dart';
 import 'package:http/http.dart' as http;

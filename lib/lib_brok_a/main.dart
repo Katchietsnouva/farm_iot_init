@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:food/lib_brok_a/models/chat_message.dart';
 import 'package:food/lib_brok_a/utils/screen_type.dart'
     show ScreenType, ScreenTypeDetector;
@@ -118,7 +118,7 @@ Future<void> main() async {
   if (!kIsWeb) {
     await _requestPermissions();
   }
-  await dotenv.load();
+  // await dotenv.load();
 
   // --- Load Theme Preference ---
   try {
